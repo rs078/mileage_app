@@ -1,0 +1,126 @@
+<div class="shell">
+
+  <header class="header">
+    <div class="brand">
+      <mat-icon class="car-icon">directions_car</mat-icon>
+      <div>
+        <h1>MileCalc</h1>
+        <p class="tech-line">C++ &nbsp;·&nbsp; .NET 8 &nbsp;·&nbsp; Angular 17</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- Mode tabs -->
+    <div class="mode-tabs">
+      <button *ngFor="let m of modes"
+        class="mode-tab"
+        [class.active]="mode === m.key"
+        (click)="selectMode(m.key)"
+        [matTooltip]="m.desc">
+        <mat-icon>{{ m.icon }}</mat-icon>
+        <span>{{ m.label }}</span>
+      </button>
+    </div>
+
+    <!-- Input card -->
+    <mat-card class="card">
+
+      <!-- MPG -->
+      <div *ngIf="mode === 'mpg'" class="inputs">
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Miles Driven</mat-label>
+          <input matInput type="number" [(ngModel)]="miles" placeholder="e.g. 300" (keyup.enter)="calculate()">
+          <span matSuffix>mi</span>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Gallons Used</mat-label>
+          <input matInput type="number" [(ngModel)]="gallons" placeholder="e.g. 10" (keyup.enter)="calculate()">
+          <span matSuffix>gal</span>
+        </mat-form-field>
+      </div>
+
+      <!-- Trip Cost -->
+      <div *ngIf="mode === 'tripcost'" class="inputs">
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Trip Distance</mat-label>
+          <input matInput type="number" [(ngModel)]="tripMiles" placeholder="e.g. 300" (keyup.enter)="calculate()">
+          <span matSuffix>mi</span>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Fuel Economy</mat-label>
+          <input matInput type="number" [(ngModel)]="tripMpg" placeholder="e.g. 30" (keyup.enter)="calculate()">
+          <span matSuffix>MPG</span>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Gas Price</mat-label>
+          <span matPrefix>$&nbsp;</span>
+          <input matInput type="number" [(ngModel)]="pricePerGallon" placeholder="e.g. 3.50" (keyup.enter)="calculate()">
+          <span matSuffix>/ gal</span>
+        </mat-form-field>
+      </div>
+
+      <!-- Range -->
+      <div *ngIf="mode === 'range'" class="inputs">
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Tank Size</mat-label>
+          <input matInput type="number" [(ngModel)]="tankSize" placeholder="e.g. 15" (keyup.enter)="calculate()">
+          <span matSuffix>gal</span>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Fuel Economy</mat-label>
+          <input matInput type="number" [(ngModel)]="rangeMpg" placeholder="e.g. 32" (keyup.enter)="calculate()">
+          <span matSuffix>MPG</span>
+        </mat-form-field>
+      </div>
+
+      <!-- Emissions -->
+      <div *ngIf="mode === 'emissions'" class="inputs">
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Miles Driven</mat-label>
+          <input matInput type="number" [(ngModel)]="emMiles" placeholder="e.g. 1000" (keyup.enter)="calculate()">
+          <span matSuffix>mi</span>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Fuel Economy</mat-label>
+          <input matInput type="number" [(ngModel)]="emMpg" placeholder="e.g. 28" (keyup.enter)="calculate()">
+          <span matSuffix>MPG</span>
+        </mat-form-field>
+      </div>
+
+      <button mat-flat-button class="calc-btn" (click)="calculate()" [disabled]="loading">
+        <mat-spinner *ngIf="loading" diameter="18" class="btn-spin"></mat-spinner>
+        <mat-icon *ngIf="!loading">calculate</mat-icon>
+        {{ loading ? 'Calculating…' : 'Calculate' }}
+      </button>
+
+      <!-- Results -->
+      <div class="stats-grid" *ngIf="stats.length && !loading">
+        <div class="stat-card" *ngFor="let s of stats" [class.highlight]="s.highlight">
+          <span class="stat-val">{{ s.value }}</span>
+          <span class="stat-unit" *ngIf="s.unit">{{ s.unit }}</span>
+          <span class="stat-label">{{ s.label }}</span>
+        </div>
+      </div>
+
+    </mat-card>
+
+    <!-- History -->
+    <mat-card class="card history-card" *ngIf="history.length">
+      <div class="history-head">
+        <span><mat-icon>history</mat-icon> Recent</span>
+        <button mat-button (click)="clearHistory()">Clear</button>
+      </div>
+      <mat-divider></mat-divider>
+      <div class="history-list">
+        <div class="history-row" *ngFor="let h of history; let i = index" [class.newest]="i === 0">
+          <mat-icon class="h-icon">{{ modeIcon(h.mode) }}</mat-icon>
+          <span class="h-text">{{ h.summary }}</span>
+          <span class="h-time">{{ h.time | date:'HH:mm:ss' }}</span>
+        </div>
+      </div>
+    </mat-card>
+
+  </main>
+</div>

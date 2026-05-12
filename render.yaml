@@ -1,0 +1,28 @@
+# Render infrastructure-as-code
+# Deploy steps:
+#   1. Push this repo to GitHub
+#   2. Connect repo to Render → "New Blueprint"
+#   3. Fill in the two placeholder URLs below with your actual Render service URLs
+#      (deploy each service once first to get the URLs, then redeploy with correct values)
+
+services:
+
+  # ── .NET 8 API ────────────────────────────────────────────────────────────
+  - type: web
+    name: mathcalc-api
+    runtime: docker
+    dockerfilePath: ./MathApi/Dockerfile
+    dockerContext: ./MathApi
+    envVars:
+      - key: ALLOWED_ORIGIN
+        value: https://mathcalc-ui.onrender.com   # ← replace with your UI's Render URL
+
+  # ── Angular UI ────────────────────────────────────────────────────────────
+  - type: web
+    name: mathcalc-ui
+    runtime: docker
+    dockerfilePath: ./math-ui/Dockerfile
+    dockerContext: ./math-ui
+    envVars:
+      - key: API_URL
+        value: https://mathcalc-api.onrender.com  # ← replace with your API's Render URL

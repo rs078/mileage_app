@@ -1,0 +1,23 @@
+services:
+  api:
+    build:
+      context: ./MathApi
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - ALLOWED_ORIGIN=http://localhost:4200
+
+  ui:
+    build:
+      context: ./math-ui
+      dockerfile: Dockerfile
+      args:
+        - API_URL=http://localhost:5000
+    ports:
+      - "4200:10000"
+    environment:
+      - PORT=10000
+    depends_on:
+      - api
