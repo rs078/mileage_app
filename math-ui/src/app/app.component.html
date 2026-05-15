@@ -31,12 +31,12 @@
         <mat-form-field appearance="outline" class="field">
           <mat-label>Miles Driven</mat-label>
           <input matInput type="number" [(ngModel)]="miles" placeholder="e.g. 300" (keyup.enter)="calculate()">
-          <span matSuffix>mi</span>
+          <span matSuffix class="unit">mi</span>
         </mat-form-field>
         <mat-form-field appearance="outline" class="field">
           <mat-label>Gallons Used</mat-label>
           <input matInput type="number" [(ngModel)]="gallons" placeholder="e.g. 10" (keyup.enter)="calculate()">
-          <span matSuffix>gal</span>
+          <span matSuffix class="unit">gal</span>
         </mat-form-field>
       </div>
 
@@ -45,18 +45,18 @@
         <mat-form-field appearance="outline" class="field">
           <mat-label>Trip Distance</mat-label>
           <input matInput type="number" [(ngModel)]="tripMiles" placeholder="e.g. 300" (keyup.enter)="calculate()">
-          <span matSuffix>mi</span>
+          <span matSuffix class="unit">mi</span>
         </mat-form-field>
         <mat-form-field appearance="outline" class="field">
           <mat-label>Fuel Economy</mat-label>
           <input matInput type="number" [(ngModel)]="tripMpg" placeholder="e.g. 30" (keyup.enter)="calculate()">
-          <span matSuffix>MPG</span>
+          <span matSuffix class="unit">MPG</span>
         </mat-form-field>
         <mat-form-field appearance="outline" class="field">
           <mat-label>Gas Price</mat-label>
-          <span matPrefix>$&nbsp;</span>
+          <span matPrefix class="unit">$&nbsp;</span>
           <input matInput type="number" [(ngModel)]="pricePerGallon" placeholder="e.g. 3.50" (keyup.enter)="calculate()">
-          <span matSuffix>/ gal</span>
+          <span matSuffix class="unit">/ gal</span>
         </mat-form-field>
       </div>
 
@@ -65,12 +65,12 @@
         <mat-form-field appearance="outline" class="field">
           <mat-label>Tank Size</mat-label>
           <input matInput type="number" [(ngModel)]="tankSize" placeholder="e.g. 15" (keyup.enter)="calculate()">
-          <span matSuffix>gal</span>
+          <span matSuffix class="unit">gal</span>
         </mat-form-field>
         <mat-form-field appearance="outline" class="field">
           <mat-label>Fuel Economy</mat-label>
           <input matInput type="number" [(ngModel)]="rangeMpg" placeholder="e.g. 32" (keyup.enter)="calculate()">
-          <span matSuffix>MPG</span>
+          <span matSuffix class="unit">MPG</span>
         </mat-form-field>
       </div>
 
@@ -79,12 +79,12 @@
         <mat-form-field appearance="outline" class="field">
           <mat-label>Miles Driven</mat-label>
           <input matInput type="number" [(ngModel)]="emMiles" placeholder="e.g. 1000" (keyup.enter)="calculate()">
-          <span matSuffix>mi</span>
+          <span matSuffix class="unit">mi</span>
         </mat-form-field>
         <mat-form-field appearance="outline" class="field">
           <mat-label>Fuel Economy</mat-label>
           <input matInput type="number" [(ngModel)]="emMpg" placeholder="e.g. 28" (keyup.enter)="calculate()">
-          <span matSuffix>MPG</span>
+          <span matSuffix class="unit">MPG</span>
         </mat-form-field>
       </div>
 
@@ -97,8 +97,10 @@
       <!-- Results -->
       <div class="stats-grid" *ngIf="stats.length && !loading">
         <div class="stat-card" *ngFor="let s of stats" [class.highlight]="s.highlight">
-          <span class="stat-val">{{ s.value }}</span>
-          <span class="stat-unit" *ngIf="s.unit">{{ s.unit }}</span>
+          <div class="stat-val-row">
+            <span class="stat-val">{{ s.value }}</span>
+            <span class="stat-unit" *ngIf="s.unit">{{ s.unit }}</span>
+          </div>
           <span class="stat-label">{{ s.label }}</span>
         </div>
       </div>

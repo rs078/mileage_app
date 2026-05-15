@@ -1,7 +1,7 @@
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddSingleton<MathApi.NativeInterop.MathService>();
+builder.Services.AddSingleton<MathApi.Services.MathService>();
 
 // ALLOWED_ORIGIN env var lets Render's frontend URL be set without rebuilding
 var allowedOrigin = Environment.GetEnvironmentVariable("ALLOWED_ORIGIN") ?? "http://localhost:4200";

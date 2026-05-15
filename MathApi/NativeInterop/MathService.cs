@@ -1,57 +1,38 @@
-using System.Runtime.InteropServices;
-
-namespace MathApi.NativeInterop;
+namespace MathApi.Services;
 
 public sealed class MathService
 {
-    private readonly bool _native;
+    public string Engine => "MileCalc v1.0";
 
-    [DllImport("MathLib", CallingConvention = CallingConvention.Cdecl)] private static extern double CalcMPG(double miles, double gallons);
-    [DllImport("MathLib", CallingConvention = CallingConvention.Cdecl)] private static extern double CalcTripCost(double miles, double mpg, double ppg);
-    [DllImport("MathLib", CallingConvention = CallingConvention.Cdecl)] private static extern double CalcRange(double tank, double mpg);
-    [DllImport("MathLib", CallingConvention = CallingConvention.Cdecl)] private static extern double CalcGallonsNeeded(double miles, double mpg);
-    [DllImport("MathLib", CallingConvention = CallingConvention.Cdecl)] private static extern double CalcCO2Kg(double miles, double mpg);
-    [DllImport("MathLib", CallingConvention = CallingConvention.Cdecl)] private static extern double MpgToL100km(double mpg);
-    [DllImport("MathLib", CallingConvention = CallingConvention.Cdecl)] private static extern double MilesToKm(double miles);
-    [DllImport("MathLib", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-    [return: MarshalAs(UnmanagedType.LPStr)] private static extern string GetVersion();
-
-    public MathService()
+    public MpgResult Mpg(double miles, double gallons)
     {
-        try { GetVersion(); _native = true; }
-        catch { _native = false; }
+        double mpg = miles / gallons;
+        return new MpgResult(R(mpg), R(235.214 / mpg), miles, gallons, Engine);
     }
 
-    public string Engine => _native ? GetVersion() : "MileageLib v1.0 (C# fallback)";
-
-    public object Mpg(double miles, double gallons)
+    public TripCostResult TripCost(double miles, double mpg, double ppg)
     {
-        double mpg    = _native ? CalcMPG(miles, gallons)   : miles / gallons;
-        double l100km = _native ? MpgToL100km(mpg)          : 235.214 / mpg;
-        return new { mpg = R(mpg), l100km = R(l100km), miles, gallons, processedBy = Engine };
+        double gal  = miles / mpg;
+        double cost = gal * ppg;
+        return new TripCostResult(R(cost), R(gal), R(cost / miles), miles, mpg, ppg, Engine);
     }
 
-    public object TripCost(double miles, double mpg, double ppg)
+    public RangeResult Range(double tank, double mpg)
     {
-        double gal  = _native ? CalcGallonsNeeded(miles, mpg) : miles / mpg;
-        double cost = _native ? CalcTripCost(miles, mpg, ppg) : gal * ppg;
-        return new { totalCost = R(cost), gallonsNeeded = R(gal), costPerMile = R(cost / miles), miles, mpg, pricePerGallon = ppg, processedBy = Engine };
+        double mi = tank * mpg;
+        return new RangeResult(R(mi), R(mi * 1.60934), tank, mpg, Engine);
     }
 
-    public object Range(double tank, double mpg)
+    public EmissionsResult Emissions(double miles, double mpg)
     {
-        double mi = _native ? CalcRange(tank, mpg)  : tank * mpg;
-        double km = _native ? MilesToKm(mi)          : mi * 1.60934;
-        return new { rangeMiles = R(mi), rangeKm = R(km), tank, mpg, processedBy = Engine };
-    }
-
-    public object Emissions(double miles, double mpg)
-    {
-        double kg  = _native ? CalcCO2Kg(miles, mpg) : (miles / mpg) * 8.887;
-        double lbs = kg * 2.20462;
-        double trees = kg / 21.77;
-        return new { co2Kg = R(kg), co2Lbs = R(lbs), treesNeeded = R(trees), miles, mpg, processedBy = Engine };
+        double kg = (miles / mpg) * 8.887;
+        return new EmissionsResult(R(kg), R(kg * 2.20462), R(kg / 21.77), miles, mpg, Engine);
     }
 
     private static double R(double v) => double.IsNaN(v) || double.IsInfinity(v) ? v : Math.Round(v, 3);
 }
+
+public sealed record MpgResult(double Mpg, double L100km, double Miles, double Gallons, string ProcessedBy);
+public sealed record TripCostResult(double TotalCost, double GallonsNeeded, double CostPerMile, double Miles, double Mpg, double PricePerGallon, string ProcessedBy);
+public sealed record RangeResult(double RangeMiles, double RangeKm, double Tank, double Mpg, string ProcessedBy);
+public sealed record EmissionsResult(double Co2Kg, double Co2Lbs, double TreesNeeded, double Miles, double Mpg, string ProcessedBy);
