@@ -81,6 +81,56 @@
 
 .unit { padding: 0 12px; font-size: 0.82rem; color: #6b7280; font-weight: 600; }
 
+// ── Fetch gas price button ────────────────────────────────────────────────
+.fetch-price-row {
+  margin-top: -6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.state-input {
+  width: 80px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid #1f2937;
+  background: #0d1117;
+  color: #f1f5f9;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.18s;
+
+  &::placeholder { color: #4b5563; text-transform: none; }
+  &:focus { border-color: #374151; }
+}
+
+.fetch-price-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid #1f2937;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: 'Inter', sans-serif;
+
+  mat-icon   { font-size: 14px; height: 14px; width: 14px; }
+  .fetch-spin { display: inline-flex; }
+
+  &:hover:not([disabled]) { background: #1f2937; color: #d1d5db; border-color: #374151; }
+  &[disabled] { opacity: 0.5; cursor: not-allowed; }
+}
+
 // ── Calculate button ──────────────────────────────────────────────────────
 .calc-btn {
   width: 100%;

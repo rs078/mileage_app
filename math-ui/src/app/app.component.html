@@ -58,6 +58,14 @@
           <input matInput type="number" [(ngModel)]="pricePerGallon" placeholder="e.g. 3.50" (keyup.enter)="calculate()">
           <span matSuffix class="unit">/ gal</span>
         </mat-form-field>
+        <div class="fetch-price-row">
+          <input class="state-input" [(ngModel)]="userState" placeholder="State (e.g. CA)" maxlength="2">
+          <button class="fetch-price-btn" (click)="fetchGasPrice()" [disabled]="gasPriceLoading">
+            <mat-spinner *ngIf="gasPriceLoading" diameter="12" class="fetch-spin"></mat-spinner>
+            <mat-icon *ngIf="!gasPriceLoading">local_gas_station</mat-icon>
+            {{ gasPriceLoading ? 'Fetching…' : 'Use Current Avg' }}
+          </button>
+        </div>
       </div>
 
       <!-- Range -->
@@ -72,6 +80,39 @@
           <input matInput type="number" [(ngModel)]="rangeMpg" placeholder="e.g. 32" (keyup.enter)="calculate()">
           <span matSuffix class="unit">MPG</span>
         </mat-form-field>
+      </div>
+
+      <!-- Compare -->
+      <div *ngIf="mode === 'compare'" class="inputs">
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Current Car MPG</mat-label>
+          <input matInput type="number" [(ngModel)]="cmpCurrentMpg" placeholder="e.g. 25" (keyup.enter)="calculate()">
+          <span matSuffix class="unit">MPG</span>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>New Car MPG</mat-label>
+          <input matInput type="number" [(ngModel)]="cmpNewMpg" placeholder="e.g. 40" (keyup.enter)="calculate()">
+          <span matSuffix class="unit">MPG</span>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Annual Miles Driven</mat-label>
+          <input matInput type="number" [(ngModel)]="cmpAnnualMiles" placeholder="e.g. 12000" (keyup.enter)="calculate()">
+          <span matSuffix class="unit">mi/yr</span>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Gas Price</mat-label>
+          <span matPrefix class="unit">$&nbsp;</span>
+          <input matInput type="number" [(ngModel)]="cmpPpg" placeholder="e.g. 3.50" (keyup.enter)="calculate()">
+          <span matSuffix class="unit">/ gal</span>
+        </mat-form-field>
+        <div class="fetch-price-row">
+          <input class="state-input" [(ngModel)]="userState" placeholder="State (e.g. CA)" maxlength="2">
+          <button class="fetch-price-btn" (click)="fetchGasPriceForCompare()" [disabled]="cmpGasPriceLoading">
+            <mat-spinner *ngIf="cmpGasPriceLoading" diameter="12" class="fetch-spin"></mat-spinner>
+            <mat-icon *ngIf="!cmpGasPriceLoading">local_gas_station</mat-icon>
+            {{ cmpGasPriceLoading ? 'Fetching…' : 'Use Current Avg' }}
+          </button>
+        </div>
       </div>
 
       <!-- Emissions -->
@@ -118,7 +159,7 @@
         <div class="history-row" *ngFor="let h of history; let i = index" [class.newest]="i === 0">
           <mat-icon class="h-icon">{{ modeIcon(h.mode) }}</mat-icon>
           <span class="h-text">{{ h.summary }}</span>
-          <span class="h-time">{{ h.time | date:'HH:mm:ss' }}</span>
+          <span class="h-time">{{ h.createdAt | date:'HH:mm:ss' }}</span>
         </div>
       </div>
     </mat-card>

@@ -29,6 +29,15 @@ public sealed class MathService
         return new EmissionsResult(R(kg), R(kg * 2.20462), R(kg / 21.77), miles, mpg, Engine);
     }
 
+    public SavingsResult Savings(double currentMpg, double newMpg, double annualMiles, double ppg)
+    {
+        double galSaved  = (annualMiles / currentMpg) - (annualMiles / newMpg);
+        double costSaved = galSaved * ppg;
+        double co2Saved  = galSaved * 8.887;
+        double pctImprove = (newMpg - currentMpg) / currentMpg * 100;
+        return new SavingsResult(R(costSaved), R(galSaved), R(co2Saved), R(pctImprove), currentMpg, newMpg, annualMiles, ppg, Engine);
+    }
+
     private static double R(double v) => double.IsNaN(v) || double.IsInfinity(v) ? v : Math.Round(v, 3);
 }
 
@@ -36,3 +45,4 @@ public sealed record MpgResult(double Mpg, double L100km, double Miles, double G
 public sealed record TripCostResult(double TotalCost, double GallonsNeeded, double CostPerMile, double Miles, double Mpg, double PricePerGallon, string ProcessedBy);
 public sealed record RangeResult(double RangeMiles, double RangeKm, double Tank, double Mpg, string ProcessedBy);
 public sealed record EmissionsResult(double Co2Kg, double Co2Lbs, double TreesNeeded, double Miles, double Mpg, string ProcessedBy);
+public sealed record SavingsResult(double AnnualSavings, double GallonsSaved, double Co2SavedKg, double MpgImprovement, double CurrentMpg, double NewMpg, double AnnualMiles, double Ppg, string ProcessedBy);

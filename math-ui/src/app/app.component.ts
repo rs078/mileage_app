@@ -10,13 +10,12 @@ import { MatDividerModule }              from '@angular/material/divider';
 import { MatProgressSpinnerModule }      from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule }              from '@angular/material/tooltip';
-import { MileageService, MpgResult, TripCostResult, RangeResult, EmissionsResult } from './services/math.service';
+import { MileageService, MpgResult, TripCostResult, RangeResult, EmissionsResult, GasPriceResult, SavingsResult, DbHistoryEntry } from './services/math.service';
 
-type Mode = 'mpg' | 'tripcost' | 'range' | 'emissions';
+type Mode = 'mpg' | 'tripcost' | 'range' | 'emissions' | 'compare';
 
 interface ModeConfig { key: Mode; label: string; icon: string; desc: string; }
 interface Stat       { value: string; label: string; unit?: string; highlight?: boolean; }
-interface HistoryItem{ summary: string; mode: Mode; time: Date; }
 
 @Component({
   selector: 'app-root',
@@ -37,7 +36,7 @@ export class AppComponent implements OnInit {
   mode: Mode = 'mpg';
   loading    = false;
   stats: Stat[]         = [];
-  history: HistoryItem[] = [];
+  history: DbHistoryEntry[] = [];
 
   // MPG inputs
   miles   = ''; gallons = '';
@@ -47,15 +46,28 @@ export class AppComponent implements OnInit {
   tankSize = ''; rangeMpg = '';
   // Emissions inputs
   emMiles = ''; emMpg = '';
+  // Compare inputs
+  cmpCurrentMpg = ''; cmpNewMpg = ''; cmpAnnualMiles = ''; cmpPpg = '';
+  cmpGasPriceLoading = false;
 
+  gasPriceLoading = false;
+  userState = '';
   readonly modes: ModeConfig[] = [
     { key: 'mpg',       label: 'MPG',       icon: 'speed',    desc: 'Calculate fuel efficiency' },
     { key: 'tripcost',  label: 'Trip Cost',  icon: 'payments', desc: 'Estimate cost of a trip' },
     { key: 'range',     label: 'Range',      icon: 'explore',  desc: 'How far can you go?' },
-    { key: 'emissions', label: 'Emissions',  icon: 'eco',      desc: 'CO₂ footprint of your drive' },
+    { key: 'emissions', label: 'Emissions',  icon: 'eco',           desc: 'CO₂ footprint of your drive' },
+    { key: 'compare',   label: 'Compare',    icon: 'compare_arrows', desc: 'Annual savings by switching cars' },
   ];
 
-  ngOnInit() { document.body.classList.add('dark-theme'); }
+  ngOnInit() {
+    document.body.classList.add('dark-theme');
+    this.loadHistory();
+  }
+
+  private loadHistory() {
+    this.svc.getHistory().subscribe({ next: h => this.history = h });
+  }
 
   selectMode(m: Mode) { this.mode = m; this.stats = []; }
 
@@ -83,6 +95,11 @@ export class AppComponent implements OnInit {
           next: r => { this.loading = false; this.showEmissions(r); },
           error: () => this.err(),
         }); break;
+      case 'compare':
+        this.svc.calcSavings(+this.cmpCurrentMpg, +this.cmpNewMpg, +this.cmpAnnualMiles, +this.cmpPpg).subscribe({
+          next: r => { this.loading = false; this.showSavings(r); },
+          error: () => this.err(),
+        }); break;
     }
   }
 
@@ -93,7 +110,7 @@ export class AppComponent implements OnInit {
       { value: r.miles.toString(),  label: 'Miles Driven',         unit: 'mi' },
       { value: r.gallons.toString(), label: 'Gallons Used',        unit: 'gal' },
     ];
-    this.push(`${r.miles} mi on ${r.gallons} gal → ${r.mpg.toFixed(1)} MPG`, 'mpg');
+    this.loadHistory();
   }
 
   private showTrip(r: TripCostResult) {
@@ -103,7 +120,7 @@ export class AppComponent implements OnInit {
       { value: `$${r.costPerMile.toFixed(3)}`,   label: 'Cost per Mile' },
       { value: `$${r.pricePerGallon}/gal`,       label: 'Gas Price' },
     ];
-    this.push(`${r.miles} mi @ ${r.mpg} MPG @ $${r.pricePerGallon}/gal → $${r.totalCost.toFixed(2)}`, 'tripcost');
+    this.loadHistory();
   }
 
   private showRange(r: RangeResult) {
@@ -113,7 +130,7 @@ export class AppComponent implements OnInit {
       { value: r.tank.toString(),        label: 'Tank Size',    unit: 'gal' },
       { value: r.mpg.toString(),         label: 'Fuel Economy', unit: 'MPG' },
     ];
-    this.push(`${r.tank} gal @ ${r.mpg} MPG → ${r.rangeMiles.toFixed(0)} mi range`, 'range');
+    this.loadHistory();
   }
 
   private showEmissions(r: EmissionsResult) {
@@ -123,12 +140,17 @@ export class AppComponent implements OnInit {
       { value: r.treesNeeded.toFixed(1), label: 'Trees to offset (1 yr)',   unit: '🌳' },
       { value: r.miles.toString(),        label: 'Miles Driven',             unit: 'mi' },
     ];
-    this.push(`${r.miles} mi @ ${r.mpg} MPG → ${r.co2Kg.toFixed(1)} kg CO₂`, 'emissions');
+    this.loadHistory();
   }
 
-  private push(summary: string, mode: Mode) {
-    this.history.unshift({ summary, mode, time: new Date() });
-    if (this.history.length > 10) this.history.pop();
+  private showSavings(r: SavingsResult) {
+    this.stats = [
+      { value: `$${r.annualSavings.toFixed(2)}`,   label: 'Annual Fuel Savings',    highlight: true },
+      { value: r.gallonsSaved.toFixed(1),           label: 'Gallons Saved / Year',   unit: 'gal' },
+      { value: r.co2SavedKg.toFixed(1),             label: 'CO₂ Avoided / Year',     unit: 'kg' },
+      { value: `${r.mpgImprovement.toFixed(1)}%`,   label: 'MPG Improvement' },
+    ];
+    this.loadHistory();
   }
 
   private err() {
@@ -136,6 +158,44 @@ export class AppComponent implements OnInit {
     this.snack.open('Cannot reach the API — is the .NET server running on :5000?', 'OK', { duration: 5000 });
   }
 
-  modeIcon(m: Mode) { return this.modes.find(x => x.key === m)?.icon ?? 'help'; }
-  clearHistory()    { this.history = []; }
+  fetchGasPrice() {
+    this.gasPriceLoading = true;
+    this.svc.getGasPrice(this.userState.trim() || undefined).subscribe({
+      next: (r: GasPriceResult) => {
+        this.gasPriceLoading = false;
+        this.pricePerGallon = r.price.toFixed(2);
+        const msg = r.live
+          ? `Live avg: $${r.price.toFixed(2)}/gal (${r.source})`
+          : `Est. avg: $${r.price.toFixed(2)}/gal`;
+        this.snack.open(msg, 'OK', { duration: 4000 });
+      },
+      error: () => {
+        this.gasPriceLoading = false;
+        this.snack.open('Could not fetch gas price — is the server running?', 'OK', { duration: 4000 });
+      },
+    });
+  }
+
+  fetchGasPriceForCompare() {
+    this.cmpGasPriceLoading = true;
+    this.svc.getGasPrice(this.userState.trim() || undefined).subscribe({
+      next: (r: GasPriceResult) => {
+        this.cmpGasPriceLoading = false;
+        this.cmpPpg = r.price.toFixed(2);
+        const msg = r.live
+          ? `Live avg: $${r.price.toFixed(2)}/gal (${r.source})`
+          : `Est. avg: $${r.price.toFixed(2)}/gal`;
+        this.snack.open(msg, 'OK', { duration: 4000 });
+      },
+      error: () => {
+        this.cmpGasPriceLoading = false;
+        this.snack.open('Could not fetch gas price — is the server running?', 'OK', { duration: 4000 });
+      },
+    });
+  }
+
+  modeIcon(m: string) { return this.modes.find(x => x.key === m)?.icon ?? 'help'; }
+  clearHistory() {
+    this.svc.clearHistory().subscribe({ next: () => this.history = [] });
+  }
 }
